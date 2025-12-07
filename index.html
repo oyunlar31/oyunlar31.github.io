@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Website</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+        }
+        .sidebar {
+            width: 400px;
+            border-right: 1px solid #ccc;
+        }
+        .content {
+            padding: 10px;
+            flex-grow: 1;
+        }
+        .tile {
+            display: inline-block;
+            width: 200px;
+            height: 200px;
+            margin: 10px;
+            text-align: center;
+            border: 1px solid #ccc;
+        }
+        .tile img {
+            width: 100%;
+            height: 100%;
+        }
+        a:link, a:visited {
+            color: black;
+            text-decoration: none;
+        }
+        #search {
+            margin-bottom: 20px;
+        }
+        #iframe {
+            width: 100%;
+            min-height: 600px;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <input type="text" id="search" placeholder="Search..."/>
+        <ul id="nameList"></ul>
+    </div>
+    <div class="content" id="content">
+        <iframe style="display:none;" id="iframe" src="about:blank" frameborder="0"></iframe>
+    </div>
+
+    <script>
+        const dataUrl = 'data.json';
+
+        async function fetchData() {
+            const response = await fetch(dataUrl);
+            const data = await response.json();
+            renderContent(data);
+            renderNames(data);
+        }
+
+        function renderContent(data) {
+            const contentDiv = document.getElementById('content');
+            const iframe = document.getElementById('iframe'); // Reference to the iframe
+            data.forEach(item => {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.innerHTML = `
+                    <a href="#" onclick="updateIframe('${item.url}'); return false;">
+                        <img src="${item.image}"/>
+                        <div>${item.name}</div>
+                    </a>
+                `;
+                contentDiv.appendChild(tile);
+            });
+        }
+
+        function renderNames(data) {
+            const nameList = document.getElementById('nameList');
+            nameList.innerHTML = '';
+            data.forEach(item => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<a href="#" onclick="updateIframe('${item.url}'); return false;">${item.name}</a>`;
+                nameList.appendChild(listItem);
+            });
+        }
+
+        function updateIframe(url) {
+            const iframe = document.getElementById('iframe');
+            iframe.src = url; // Update the iframe source
+            iframe.style.display = 'block';
+        }
+
+        document.getElementById('search').addEventListener('input', function(event) {
+            const searchTerm = event.target.value.toLowerCase();
+            fetch(dataUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const filteredData = data.filter(item => item.name.toLowerCase().includes(searchTerm));
+                    renderContent(filteredData);
+                });
+        });
+
+        fetchData();
+    </script>
+</body>
+</html>
+
